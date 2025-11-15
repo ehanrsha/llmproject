@@ -1,0 +1,29 @@
+{
+  "_comment": "Canonical triage-extractor schema. Units: BP mmHg, HR/RR bpm, Temp °C, SpO2 % (50-100). Use null for unknown. Arrays may be empty.",
+  "patient_id": null,
+  "encounter_time": null,
+  "demographics": { "age_years": null, "sex": "unknown", "pregnancy_status": "unknown" },
+  "vitals": {
+    "sbp_mmHg": null,
+    "dbp_mmHg": null,
+    "hr_bpm": null,
+    "rr_bpm": null,
+    "temp_c": null,
+    "spo2_pct": null,
+    "gcs_total": null
+  },
+  "key_signs_symptoms": [],
+  "mechanism_of_injury": null,
+  "bleeding": { "present": "unknown", "estimated_ml": null },
+  "airway_breathing_circulation": { "airway": "unknown", "breathing": "unknown", "circulation": "unknown" },
+  "allergies": [],
+  "medications": [],
+  "comorbidities": [],
+  "constraints": { "reliability": "medium", "notes": "" },
+  "extraction_confidence": null
+}
+
+# COMMENTS / NEXT STEPS (JSON can't contain # comments; keep notes here in README/docs)
+# - Keep this the single source of truth for fields and units.
+# - If you add fields, bump a schema version (e.g., add "schema_version": "v2") and record changes.
+# - Ensure src/schema_models.py mirrors this exactly (types/defaults).

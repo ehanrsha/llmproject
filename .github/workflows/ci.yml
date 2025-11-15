@@ -1,0 +1,24 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.10' }
+      - run: python -m pip install --upgrade pip
+      - run: pip install -r requirements.txt
+      - run: pytest -q
+
+      # COMMENTS / NEXT STEPS
+# - This runs tests on every push/PR. Keep tests small & fast so CI stays quick.
+# - Later, add separate jobs:
+#     lint:
+#       - run: pip install ruff black
+#       - run: ruff . && black --check .
+#     typecheck:
+#       - run: pip install mypy
+#       - run: mypy src/
+# - If you add integration tests that pull models, gate them with an env flag
+#   and skip in CI (e.g., use LLMEngine(dry_run=True) in tests)

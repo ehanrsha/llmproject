@@ -1,0 +1,23 @@
+# Core DL stack
+torch
+transformers>=4.44
+accelerate
+peft
+datasets
+
+# Validation / parsing / classical ML
+pydantic==2.*
+regex
+scikit-learn
+
+# API & tooling
+fastapi
+uvicorn
+
+# Testing
+pytest
+
+# COMMENTS / NEXT STEPS
+# - Pin versions once stable (e.g., torch==2.4.*, transformers==4.45.*).
+# - If you add lint/typecheck: ruff, black, mypy (and configure in CI).
+# - For GPU: install the CUDA-specific torch wheel from pytorch.org.

@@ -1,0 +1,14 @@
+# Generation / model settings (read by your code; no secrets here)
+model_name: "to-be-decided"    # e.g., meta-llama/Meta-Llama-3.1-8B-Instruct
+max_new_tokens: 600
+temperature: 0.0
+top_p: 1.0
+seed: 42
+use_lora: false
+lora_path: null
+device: "auto"                 # auto / cpu / cuda
+dtype: "auto"                  # auto / float32 / bfloat16 / float16
+
+# COMMENTS / NEXT STEPS
+# - When you fine-tune: set use_lora: true and lora_path: "out/triage-json-lora".
+# - If you add safety limits (e.g., max_input_chars), store them here too.

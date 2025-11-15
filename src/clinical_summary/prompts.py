@@ -1,4 +1,9 @@
-"""Prompt building utilities."""
+"""Prompt building utilities.
+
+The existing helpers stay mostly intact so newcomers can see a reference
+implementation. Comments highlight where custom logic should be inserted (for
+example, adding more structured fields or plugging in a better summarizer).
+"""
 from __future__ import annotations
 
 import json
@@ -29,7 +34,13 @@ def _coerce_age_years(record: Dict) -> Optional[float]:
 
 
 def build_input_prompt(record: Dict, few_shot_limit: int = 0) -> str:
-    """Create the instruction-style prompt that the seq2seq model will consume."""
+    """Create the instruction-style prompt that the seq2seq model will consume.
+
+    Feel free to heavily customize this function. Examples of future tweaks:
+    * prepend triage-specific reminders (e.g., "highlight vital instability")
+    * add few-shot exemplars that show the expected JSON output style
+    * include additional structured vitals from the dataset once available
+    """
 
     parts: List[str] = [SYSTEM_PROMPT, "Patient narrative:"]
     if few_shot_limit > 0:
@@ -53,7 +64,14 @@ def build_input_prompt(record: Dict, few_shot_limit: int = 0) -> str:
 
 
 def _summarize_condition_text(text: str, max_sentences: int = 3) -> str:
-    """Naive summarization by clipping the narrative."""
+    """Naive summarization by clipping the narrative.
+
+    TODO(team): replace this logic with whichever approach you prefer:
+    - keyword extraction (e.g., YAKE, keyBERT)
+    - calling an open LLM zero-shot (if allowed)
+    - manual bullet points curated by clinicians
+    For now we keep a deterministic implementation so unit tests / dry-runs work.
+    """
 
     # This keeps the framework lightweight while still producing deterministic targets. In a
     # production system this function can be replaced with a keyword extractor or clinician
@@ -74,7 +92,12 @@ def _summarize_condition_text(text: str, max_sentences: int = 3) -> str:
 
 
 def build_target_summary(record: Dict) -> str:
-    """Create the JSON target string with the extracted key points."""
+    """Create the JSON target string with the extracted key points.
+
+    The payload currently mirrors the simple example shared by the team. When we
+    decide to include blood pressure, visual descriptions, etc., expand this
+    dictionary and update the README/decision tree to match.
+    """
 
     payload = {
         "patient_uid": record.get("patient_uid") or record.get("patient_id"),

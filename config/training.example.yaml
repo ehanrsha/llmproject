@@ -1,4 +1,5 @@
 # Path to the JSON dataset shipped with the repository.
+# 👉 TODO(team): point this to the actual file you cleaned up (e.g., dataset/mietic.train.json)
 data:
   dataset_path: dataset
   test_size: 0.15
@@ -8,11 +9,12 @@ data:
   few_shot_examples: 1
 
 model:
+  # Swap these IDs to try other open models (e.g., google/flan-t5-large, facebook/bart-large).
   name_or_path: google/flan-t5-base
   tokenizer_name: google/flan-t5-base
 
 training:
-  output_dir: artifacts/flan-t5-base
+  output_dir: artifacts/flan-t5-base  # NOTE: folder ignored by git so feel free to create subdirs
   num_train_epochs: 3
   learning_rate: 3e-5
   weight_decay: 0.01

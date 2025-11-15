@@ -1,4 +1,10 @@
-"""Data loading and preprocessing utilities for the clinical summarization task."""
+"""Data loading and preprocessing utilities for the clinical summarization task.
+
+Important: this module intentionally keeps the "boring" plumbing in place so
+new contributors can focus on understanding how raw JSON records turn into
+prompt/target pairs. Several extension hooks and TODO notes are sprinkled
+throughout the file.
+"""
 from __future__ import annotations
 
 import json
@@ -34,7 +40,11 @@ def _coerce_json_array(text: str) -> str:
 
 
 def load_patient_records(dataset_path: Path | str) -> List[Dict]:
-    """Load the dataset file and return a list of patient dictionaries."""
+    """Load the dataset file and return a list of patient dictionaries.
+
+    TODO(team): if we later ingest the PhysioNet CSVs, add a branch that detects
+    `.csv` and uses `pandas.read_csv`. For now we assume newline-delimited JSON.
+    """
 
     raw_text = Path(dataset_path).read_text(encoding="utf-8")
     data = json.loads(_coerce_json_array(raw_text))
@@ -44,7 +54,12 @@ def load_patient_records(dataset_path: Path | str) -> List[Dict]:
 
 
 def prepare_examples(records: Sequence[Dict], cfg: DataConfig) -> List[PreparedExample]:
-    """Transform patient records into prompt/target pairs."""
+    """Transform patient records into prompt/target pairs.
+
+    Notice how the helper defers all formatting details to `prompts.py`. Keeping
+    the logic centralized makes it easier to iterate on the schema without
+    touching data loading.
+    """
 
     examples: List[PreparedExample] = []
     for row in records:
@@ -58,7 +73,12 @@ def prepare_examples(records: Sequence[Dict], cfg: DataConfig) -> List[PreparedE
 
 
 def build_hf_dataset(records: Sequence[Dict], cfg: DataConfig) -> DatasetDict:
-    """Create a :class:`datasets.DatasetDict` with train/test splits."""
+    """Create a :class:`datasets.DatasetDict` with train/test splits.
+
+    The actual splitting logic remains implemented because it is mostly boiler-plate.
+    The interesting work—feature engineering and prompt tuning—happens earlier.
+    Still, there are clear extension points noted below.
+    """
 
     examples = prepare_examples(records, cfg)
     random.Random(cfg.seed).shuffle(examples)
@@ -78,6 +98,9 @@ def build_hf_dataset(records: Sequence[Dict], cfg: DataConfig) -> DatasetDict:
             "validation": Dataset.from_list(_to_dicts(eval_examples)),
         }
     )
+
+    # TODO(team): consider logging a few random samples here to manually sanity
+    # check prompts before starting a long training job.
     return dataset_dict
 
 

@@ -1,15 +1,26 @@
-"""Command line utility to fine-tune a seq2seq model on the patient dataset."""
+"""Command line utility to fine-tune a seq2seq model on the patient dataset.
+
+The previous commit shipped a working Hugging Face training loop. Per the new
+requirements we now expose *only the scaffolding* so beginners can practice
+implementing the important steps themselves. Every block contains explicit
+instructions that describe what needs to happen.
+"""
 from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from typing import Any, Dict
 
 from .config import ProjectConfig
 from .data import build_hf_dataset, load_patient_records
 
 
 def parse_args() -> argparse.Namespace:
+    """Parse command line arguments.
+
+    Nothing fancy happens here—it's safe for new contributors to modify the CLI
+    flags if they want to pass additional knobs to the training loop.
+    """
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True, help="Path to the YAML configuration file")
     parser.add_argument(
@@ -20,80 +31,51 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _tokenize_function(tokenizer, max_input: int, max_target: int):
-    def _tokenize(batch: Dict[str, Any]) -> Dict[str, Any]:
-        model_inputs = tokenizer(
-            batch["input_text"],
-            max_length=max_input,
-            truncation=True,
-        )
-        with tokenizer.as_target_tokenizer():
-            labels = tokenizer(
-                batch["target_text"],
-                max_length=max_target,
-                truncation=True,
-            )
-        model_inputs["labels"] = labels["input_ids"]
-        return model_inputs
+def _print_dataset_stats(dataset_dict) -> None:
+    """Utility that prints how many rows live in each split.
 
-    return _tokenize
+    Keeping this helper ensures `--dry-run` still provides fast feedback even
+    though the training loop itself is unfinished.
+    """
+
+    train_len = len(dataset_dict["train"])
+    val_len = len(dataset_dict["validation"])
+    print(f"Dataset prepared. train={train_len} validation={val_len}")
 
 
 def main() -> None:  # pragma: no cover - entry point with I/O
     args = parse_args()
     cfg = ProjectConfig.from_yaml(args.config)
+
+    # STEP 1: Load and split the raw dataset ------------------------------------
+    # The helper functions already deal with JSON quirks (dangling commas, etc.).
+    # Feel free to extend `load_patient_records` to support CSV or Parquet later.
     records = load_patient_records(cfg.data.dataset_path)
     dataset_dict = build_hf_dataset(records, cfg.data)
-
-    from transformers import (
-        AutoModelForSeq2SeqLM,
-        AutoTokenizer,
-        DataCollatorForSeq2Seq,
-        Trainer,
-        TrainingArguments,
-    )
-
-    tokenizer_name = cfg.model.tokenizer_name or cfg.model.name_or_path
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
-    tokenized_dataset = dataset_dict.map(
-        _tokenize_function(tokenizer, cfg.data.max_input_length, cfg.data.max_target_length),
-        batched=True,
-        remove_columns=dataset_dict["train"].column_names,
-    )
+    _print_dataset_stats(dataset_dict)
 
     if args.dry_run:
-        print(f"Prepared {len(dataset_dict['train'])} train and {len(dataset_dict['validation'])} validation rows.")
+        # Early exit so contributors can quickly check their data prep changes.
         return
 
-    model = AutoModelForSeq2SeqLM.from_pretrained(cfg.model.name_or_path)
-    data_collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model)
-    training_args = TrainingArguments(
-        output_dir=str(cfg.training.output_dir),
-        num_train_epochs=cfg.training.num_train_epochs,
-        learning_rate=cfg.training.learning_rate,
-        per_device_train_batch_size=cfg.training.per_device_train_batch_size,
-        per_device_eval_batch_size=cfg.training.per_device_eval_batch_size,
-        weight_decay=cfg.training.weight_decay,
-        gradient_accumulation_steps=cfg.training.gradient_accumulation_steps,
-        warmup_steps=cfg.training.warmup_steps,
-        logging_steps=cfg.training.logging_steps,
-        evaluation_strategy="epoch",
-        save_strategy="epoch",
-        save_total_limit=cfg.training.save_total_limit,
-        predict_with_generate=True,
-        fp16=cfg.training.fp16,
+    # STEP 2: Tokenize -----------------------------------------------------------
+    # TODO(team):
+    #   * Import `AutoTokenizer` from `transformers`.
+    #   * Load the tokenizer specified in the config (`cfg.model`).
+    #   * Map `dataset_dict` through the tokenizer to produce token IDs.
+    #   * Remember to remove the original text columns to keep memory usage low.
+    raise NotImplementedError(
+        "Tokenization + HF Trainer setup has been intentionally removed. "
+        "Follow the comments in training.py to re-implement the steps."
     )
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        train_dataset=tokenized_dataset["train"],
-        eval_dataset=tokenized_dataset["validation"],
-        data_collator=data_collator,
-        tokenizer=tokenizer,
-    )
-    trainer.train()
-    trainer.save_model(str(cfg.training.output_dir))
+    # STEP 3: Trainer setup ------------------------------------------------------
+    # After tokenization is in place, instantiate:
+    #   * `AutoModelForSeq2SeqLM.from_pretrained(cfg.model.name_or_path)`
+    #   * `TrainingArguments` using the hyper-parameters in `cfg.training`
+    #   * `Trainer` with the model, datasets, tokenizer, and data collator
+    #   * Call `trainer.train()` and `trainer.save_model(cfg.training.output_dir)`
+    # Add custom callbacks / metrics once the basic loop works.
 
 
 if __name__ == "__main__":  # pragma: no cover

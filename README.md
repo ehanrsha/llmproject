@@ -1,103 +1,123 @@
-# Clinical Patient Key-Point Summarization
+# Triage Planner Framework
 
-This repository contains a lightweight framework for turning the provided clinical narratives
-(`dataset`) into instruction pairs that can be used to fine-tune an open Large Language Model (LLM)
-(e.g., [google/flan-t5-base](https://huggingface.co/google/flan-t5-base)) to extract structured key
-points such as age, blood type, and a concise description of the patient's condition.
+We are building **two complementary components** that work together to help EMT crews and hospital
+staff triage patients faster:
+
+1. **LLM Summarizer** – ingests narrative reports (for example the EMT notes listed in
+   [PREP-5004 examples](https://www.vdh.virginia.gov/content/uploads/sites/23/2016/05/PREP-5004Examples.pdf))
+   plus structured vitals (age, blood type, etc.) and turns them into a consistent JSON summary.
+2. **Decision Tree Prioritizer** – consumes the JSON summaries and produces a priority score or
+   label that indicates who should be treated first.
+
+> 💡 **Goal for this commit:** provide a _beginner-friendly scaffold_ with very explicit comments and
+> TODO markers so new teammates can fill in the important pieces themselves.
 
 ## Repository layout
 
 ```
 .
 ├── config/
-│   └── training.example.yaml   # Starter hyper-parameter file for fine-tuning runs
-├── dataset                     # Raw patient JSON objects shipped with the challenge
-├── requirements.txt            # Python dependencies (Transformers, Datasets, etc.)
-└── src/clinical_summary/
-    ├── __init__.py             # Package metadata stub
-    ├── config.py               # Dataclasses for experiment configuration
-    ├── data.py                 # Dataset loading + HF Dataset conversion
-    ├── inference.py            # CLI helper for running inference
-    ├── prompts.py              # Prompt/target formatting utilities
-    └── training.py             # Fine-tuning entry point (HF Trainer)
+│   └── training.example.yaml   # Annotated template for LLM training hyper-parameters
+├── dataset/                    # Raw clinical JSON dumps (needs review/cleanup by the team)
+├── samples/patients.sample.json# Mini file to test the pipeline manually
+├── src/
+│   ├── clinical_summary/       # LLM summarizer package (heavily commented scaffold)
+│   │   ├── config.py
+│   │   ├── data.py
+│   │   ├── prompts.py
+│   │   ├── training.py
+│   │   └── inference.py
+│   └── triage_planner/
+│       └── decision_tree.py    # Placeholder for the rule-based/decision-tree prioritizer
+└── README.md                   # This guide (plan, task breakdown, onboarding steps)
 ```
 
-## Quickstart
+## Beginner-friendly onboarding plan
 
-1. **Create a virtual environment** (Python 3.10+ is recommended) and install dependencies:
+The work is intentionally split so at least two people can collaborate without stepping on each
+other. Each task references the module(s) involved and notes what is already prepared versus what
+still needs to be coded.
 
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   export PYTHONPATH=src  # needed so `python -m clinical_summary.*` resolves the package
-   ```
+| Workstream | Sub-task | Owner suggestion | Status | Notes |
+|------------|----------|------------------|--------|-------|
+| **LLM Summarizer** | Review/clean the raw `dataset/*.json` files | Person A | ⬜️ TODO | Make sure every file is a valid JSON array and redact PHI if necessary. |
+| | Implement prompt+target builders inside `src/clinical_summary/prompts.py` | Person A | ⬜️ TODO | Skeleton + docstrings exist; fill in `_summarize_condition_text` with real logic. |
+| | Finish `load_patient_records` + `build_hf_dataset` in `data.py` | Person B | ⬜️ TODO | Current file explains each step and where to insert code. |
+| | Complete the training CLI in `training.py` | Person B | ⬜️ TODO | Use Hugging Face `Trainer`; the comments outline the flow. |
+| | Complete inference CLI in `inference.py` | Person B | ⬜️ TODO | Should mirror training tokenizer/model loading. |
+| | Experiment tracking + evaluation metrics | Person C | ⬜️ TODO | See TODO in `training.py` for hooking custom metrics. |
+| **Decision Tree Prioritizer** | Define triage criteria with clinical lead | Person D | ⬜️ TODO | E.g., unstable vitals > allergies > transport time. Document in README once finalized. |
+| | Implement priority scoring in `triage_planner/decision_tree.py` | Person D | ⬜️ TODO | Function `assign_priority` currently returns `NotImplementedError`. |
+| | Connect LLM output JSON to the decision tree | Person A + D | ⬜️ TODO | Determine shared schema (see `samples/patients.sample.json`). |
+| **Project Ops** | Document experiments + share checkpoints | Rotating | ⬜️ TODO | Use `/artifacts` folder (not tracked) per config template. |
 
-2. **Run a smoke test** to verify the dataset can be parsed and tokenized without starting a full
-   training job:
+## How everything fits together
 
-   ```bash
-   python -m clinical_summary.training --config config/training.example.yaml --dry-run
-   ```
+```
+Narrative report + vitals
+          │
+          ▼
+  clinical_summary.prompts  (format instruction + desired JSON fields)
+          │
+          ▼
+  clinical_summary.data     (convert dataset to Hugging Face DatasetDict)
+          │
+          ▼
+  clinical_summary.training (fine-tune FLAN-T5 or any free seq2seq model)
+          │
+          ▼
+  clinical_summary.inference (produce JSON summaries for new patients)
+          │
+          ▼
+triage_planner.decision_tree (score priority / produce flowchart result)
+```
 
-   The command prints how many training/validation rows were prepared and exits.
+## Environment setup
 
-3. **Launch fine-tuning** (requires a GPU or a CPU with sufficient memory). This command trains the
-   freely available `google/flan-t5-base` model on the generated instruction pairs and stores the
-   resulting checkpoint inside `artifacts/flan-t5-base` (configurable in the YAML file):
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt  # transformers, datasets, etc.
+export PYTHONPATH=src  # so "python -m clinical_summary.training" works
+```
 
-   ```bash
-   python -m clinical_summary.training --config config/training.example.yaml
-   ```
+The Python dependencies are already listed, but installation may fail in restricted environments.
+If that happens, try running on a local machine or Colab where Hugging Face downloads are allowed.
 
-   Adjust batch sizes, `gradient_accumulation_steps`, or switch to another open model by editing the
-   configuration file.
+## Implementation roadmap (high level)
 
-4. **Run inference** on new patient records by pointing to the fine-tuned model directory (or any
-   compatible Hugging Face model) and a JSON file containing one or multiple patient objects:
+1. **Data audit (week 1):** confirm file formats, remove corrupted rows, and list mandatory fields
+   (age, blood type, blood pressure, mental status, etc.). Update `samples/patients.sample.json`
+   when you find additional attributes so the inference example stays realistic.
+2. **Prompt/target iteration (week 1–2):** experiment with how the prompt is phrased and which
+   fields we expect in the JSON output. Keep instructions short for small models (FLAN-T5) and add
+   more detail for larger models (Llama 3, Mixtral, etc.).
+3. **Fine-tuning loop (week 2):** finish `training.py`, run a dry-run (`--dry-run` only loads data),
+   then execute a full training job when GPU time is available. Save checkpoints under
+   `artifacts/<run-name>` (folder is ignored by git so add a README there for context).
+4. **Decision tree prototype (week 2):** codify your triage flowchart in `decision_tree.py`. Start
+   simple (e.g., unstable vitals = priority 1) and refine as you gather real EMT feedback.
+5. **Integration test (week 3):** feed LLM-generated JSON into the decision tree and compare the
+   automated priority order against clinician expectations. Adjust either component as needed.
 
-   ```bash
-   python -m clinical_summary.inference \
-       --model artifacts/flan-t5-base \
-       --input samples/patients.sample.json \
-       --output predictions.jsonl
-   ```
+## Helpful tips embedded in the code
 
-   When `--output` is omitted, predictions are printed to stdout. Each prediction is a JSON string
-   with the fields `patient_uid`, `age_years`, `blood_type`, and `condition`, matching the target
-   format described in the prompt instructions.
+- Every Python file inside `src/` now contains **big block comments** that explain _why_ a function
+  exists and mark exactly where to add logic. Search for `TODO(team)` to find your assignments.
+- If you are new to Hugging Face, read the inline comments in `training.py` before touching the code.
+  They walk you through tokenizer loading, dataset mapping, and the trainer loop.
+- The decision tree file gives a plain-English recipe for how to transform vitals (SBP/DBP, heart
+  rate, Glasgow Coma Score, etc.) into a simple score. You can start with `if/elif` statements or
+  use `sklearn.tree.DecisionTreeClassifier` later.
 
-## How the framework works
+## Next steps checklist
 
-1. **Parsing and cleaning** – `clinical_summary.data.load_patient_records` reads the raw JSON file.
-   The helper automatically wraps the loose objects inside brackets to convert the document into a
-   valid JSON array, so no manual preprocessing is required.
-2. **Prompt/target creation** – `clinical_summary.prompts.build_input_prompt` merges the structured
-   metadata (age, gender, publication year) with the free-text narrative and emits an instruction
-   string understood by instruction-tuned seq2seq models. The paired target is a JSON payload
-   created by `build_target_summary`, which currently applies a deterministic (but easily swappable)
-   summarizer that clips the narrative to a few sentences.
-3. **Dataset preparation** – `clinical_summary.data.build_hf_dataset` converts the prompt/target
-   pairs into a Hugging Face `DatasetDict`, performs shuffling, and creates a validation split.
-4. **Fine-tuning** – `clinical_summary.training` wires the dataset into the Hugging Face `Trainer`
-   using `AutoModelForSeq2SeqLM` and `AutoTokenizer`. Switching to a different free model is as
-   simple as changing the `name_or_path` field in the YAML configuration.
-5. **Deployment/inference** – `clinical_summary.inference` loads the saved checkpoint, rebuilds the
-   prompts for new records, and generates predictions that follow the required JSON schema.
+- [ ] Confirm raw data sources (Virginia EMT narratives + Physionet MIETIC) are downloaded into
+      `dataset/`.
+- [ ] Decide on the **minimum viable JSON schema** (fields and types) for the LLM output.
+- [ ] Finish the `TODO` blocks in `src/clinical_summary/*.py` and `src/triage_planner/decision_tree.py`.
+- [ ] Run the dry-run command to ensure data loading works before launching expensive training jobs.
+- [ ] Pair the LLM predictions with the decision tree scoring logic to produce a ranked patient list.
 
-## Customization guide
-
-- **Model choice:** swap `google/flan-t5-base` in `config/training.example.yaml` for any other free
-  seq2seq model (e.g., `google/flan-t5-large`, `facebook/bart-base`, or `tiiuae/falcon-7b-instruct`
-  when enough hardware is available).
-- **Target engineering:** replace `_summarize_condition_text` in `src/clinical_summary/prompts.py`
-  with a more advanced algorithm (keyword extraction, clinician-provided bullet points, etc.) to
-  produce higher-quality supervision signals.
-- **Additional fields:** extend `build_target_summary` to emit more attributes (blood pressure,
-  imaging modality, etc.) and update the system prompt accordingly.
-- **Evaluation:** plug the validation split into any preferred evaluation metric (BLEU, Rouge, exact
-  JSON match) by enhancing `training.py` with a `compute_metrics` function.
-
-This scaffold keeps the heavy lifting (tokenization, training loop, inference) implemented so that
-future improvements can focus on better labeling or model experimentation.
+Once these boxes are checked we can worry about evaluation metrics, model deployment, and UI/UX.

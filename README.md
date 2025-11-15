@@ -32,10 +32,10 @@ staff triage patients faster:
 └── README.md                   # This guide (plan, task breakdown, onboarding steps)
 ```
 
-Person A: Ehan Shah
-Pereson B: Raaghava Deepak
-Person C: David Castellanos
-Person D: Dhruv Palli
+Person A: Ehan Shah /n
+Person B: Raaghava Deepak /n
+Person C: David Castellanos /n
+Person D: Dhruv Palli /n
 
 ## Beginner-friendly onboarding plan
 

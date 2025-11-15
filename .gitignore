@@ -8,3 +8,6 @@ __pycache__/
 data/**/*
 !data/mock/**
 !data/README.md
+
+purpose: Keeps junk/large/secret files out of git.
+Add later: Extra patterns if you introduce notebooks (.ipynb_checkpoints/), experiment logs, etc.

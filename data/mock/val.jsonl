@@ -1,0 +1,4 @@
+{"patient_id":"V-001","narrative":"76M found confused, possible stroke. GCS 12. BP 190/100 HR 62 RR 20 SpO2 94%."}
+
+# COMMENTS / NEXT STEPS
+# - For evaluation: extend each line with "gold_json": { ... } to compute metrics.

@@ -1,0 +1,6 @@
+{"patient_id":"M-001","narrative":"58 y/o M, chest pain x30 min. BP 88/54 HR 120 RR 24 SpO2 89% RA. Denies trauma."}
+{"patient_id":"M-002","narrative":"22F fall from skateboard, scalp laceration ~3cm, bleeding controlled. BP 118/72 HR 88 RR 18 SpO2 98%."}
+
+# COMMENTS / NEXT STEPS
+# - JSONL = one valid JSON object per line (no trailing commas).
+# - For labeled eval later, add a "gold_json" field per line in val.jsonl.

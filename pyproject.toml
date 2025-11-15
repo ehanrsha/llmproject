@@ -1,0 +1,16 @@
+[project]
+name = "triage-ai"
+version = "0.0.1"
+description = "LLM → JSON → features for decision-tree triage (skeleton)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+
+# COMMENTS / NEXT STEPS
+# - Add tooling configs here (ruff, black, mypy) to centralize settings.
+# - Example ruff:
+#   [tool.ruff]
+#   line-length = 100
+#   target-version = "py310"

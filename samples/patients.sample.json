@@ -1,0 +1,18 @@
+[
+  {
+    "patient_id": "0",
+    "patient_uid": "497050-1",
+    "gender": "F",
+    "pub_date": "2004",
+    "age": [[34.0, "year"]],
+    "patient": "A 34-year old woman was referred for consideration of percutaneous ASD closure. The ASD had been diagnosed when the patient was 12 years old."
+  },
+  {
+    "patient_id": "1",
+    "patient_uid": "497050-2",
+    "gender": "F",
+    "pub_date": "2004",
+    "age": [[31.0, "year"]],
+    "patient": "A 31-year old woman was found to have a secundum ASD during investigations for breathlessness."
+  }
+]

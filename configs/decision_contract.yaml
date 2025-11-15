@@ -1,0 +1,15 @@
+# Contract between extractor and decision tree
+feature_order:
+  - age_years
+  - sbp_mmHg
+  - dbp_mmHg
+  - hr_bpm
+  - rr_bpm
+  - spo2_pct
+  - temp_c
+target: priority   # or ESI_level
+notes: "Keep feature order stable; bump version on changes."
+
+# COMMENTS / NEXT STEPS
+# - If you add derived flags (e.g., hypotension_flag), append them here and mirror in code.
+# - Consider adding a contract_version: v1 to track changes across teams.

@@ -32,6 +32,11 @@ staff triage patients faster:
 └── README.md                   # This guide (plan, task breakdown, onboarding steps)
 ```
 
+Person A: Ehan
+Pereson B: Raaghav
+Person C: David
+Person D: Dhruv
+
 ## Beginner-friendly onboarding plan
 
 The work is intentionally split so at least two people can collaborate without stepping on each

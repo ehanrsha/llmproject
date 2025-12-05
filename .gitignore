@@ -1,46 +1,226 @@
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.egg-info/
-.ipynb_checkpoints/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Envs
-.venv/
-.env
-.env.*
-
-# Model weights / artifacts
-*.pt
-*.bin
-*.safetensors
-out/
-checkpoints/
-wandb/
-
-# Data (keep only tiny mock fixtures)
-data/**/*
-!data/README.md
-!data/mock/**
-
-# Build & logs
-dist/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
-*.log
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# Editors/OS
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.conda/
+
+# PyTorch
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.code-workspace
+
+# Data files (IMPORTANT - don't commit large datasets!)
+data/raw/*.csv
+data/raw/*.txt
+data/raw/*.json
+data/raw/*.jsonl
+data/raw/NOTEEVENTS.csv
+data/raw/DIAGNOSES_ICD.csv
+data/raw/PATIENTS.csv
+data/raw/ADMISSIONS.csv
+data/processed/*.csv
+data/processed/*.txt
+data/processed/*.json
+data/processed/*.jsonl
+data/splits/*.jsonl
+data/json_outputs/*.json
+
+# Keep directory structure but ignore contents
+data/raw/.gitkeep
+data/processed/.gitkeep
+data/splits/.gitkeep
+data/json_outputs/.gitkeep
+
+# Model files (large binary files)
+models/checkpoints/*.pt
+models/checkpoints/*.pth
+models/checkpoints/*.bin
+models/checkpoints/*.ckpt
+models/decision_tree/*.pkl
+models/decision_tree/*.joblib
+models/onnx/*.onnx
+
+# Logs
+logs/
+*.log
+*.out
+*.err
+
+# Test coverage
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+.tox/
+.nox/
+
+# Documentation builds
+docs/_build/
+docs/.doctrees/
+site/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+tmp/
+temp/
+
+# OS files
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# COMMENTS / NEXT STEPS
-# - If you later want to track a few processed examples, selectively unignore:
-#   !data/processed/**
-#   !data/processed/*.json
-# - If you add notebooks, this already ignores .ipynb_checkpoints/.
-# - To stop tracking something already committed: `git rm --cached -r path/`
+# Secrets and credentials (CRITICAL - never commit!)
+.env
+.env.local
+.env.*.local
+secrets.yaml
+credentials.json
+*.key
+*.pem
+config/secrets.yaml
+config/credentials.yaml
+
+# API keys
+*_api_key*
+*_secret_key*
+*.credentials
+
+# Experiment tracking
+wandb/
+mlruns/
+.mlflow/
+tensorboard/
+runs/
+
+# Compressed files (unless specifically needed)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+*.mp3
+*.wav
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration overrides (local configs)
+config/local*.yaml
+config/*_local.yaml
+
+# Compiled files
+*.pyc
+*.pyo
+*.class
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/
+
+# pytype
+.pytype/
+
+# Cython
+cython_debug/
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Profiling
+*.prof
+*.lprof
+
+# Sphinx documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Exclude large sample files but keep small examples
+samples/*.csv
+samples/*.txt
+# Keep small JSON s

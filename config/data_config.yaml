@@ -1,0 +1,11 @@
+#needed for adding data paths 
+#It's a configuration file that stores all settings related to your data - paths, preprocessing rules, and dataset splits.
+
+#e.g.
+#paths:
+ # processed_data: "./data/processed"          # Cleaned narratives
+ # json_outputs: "./data/json_outputs"         # LLM extractions
+ # train_file: "./data/splits/train.jsonl"
+ # val_file: "./data/splits/val.jsonl"
+#  test_file: "./data/splits/test.jsonl"
+  

@@ -126,3 +126,192 @@ If that happens, try running on a local machine or Colab where Hugging Face down
 - [ ] Pair the LLM predictions with the decision tree scoring logic to produce a ranked patient list.
 
 Once these boxes are checked we can worry about evaluation metrics, model deployment, and UI/UX.
+
+
+
+
+
+
+
+
+
+
+
+
+
+System Architecture:
+EMS Narrative Report (Text)
+         ↓
+    Preprocessing (Clean text, remove PHI)
+         ↓
+    LLM Extraction (Extract structured JSON)
+         ↓
+    Decision Tree (Predict priority 1-5)
+         ↓
+    Triage Priority Assignment
+🏥 Triage Priority Levels
+
+Immediate - Life-threatening, needs immediate intervention
+Emergent - Serious but stable, needs prompt care
+Urgent - Stable but needs medical care
+Less Urgent - Minor injury, can wait
+Non-Urgent - Can wait extended period
+
+🚀 Quick Start
+Installation
+bash# Clone repository
+git clone https://github.com/ehanrsha/llmproject.git
+cd llmproject
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+Basic Usage
+bash# Run inference on a single narrative
+python scripts/run_inference.py --input data/raw/narrative.txt
+
+# Process all narratives in a directory
+python scripts/run_inference.py --input-dir data/raw/narratives/
+
+# Quick test with text
+python scripts/run_inference.py --text "45 y/o male with chest pain, BP 160/95, HR 110..."
+Run Tests
+bash# Run all tests
+pytest tests/ -v
+
+# Run specific test file
+pytest tests/test_pipeline.py -v
+
+# Run with coverage
+pytest --cov=src tests/
+📁 Project Structure
+llmproject/
+├── config/                          # Configuration files
+│   ├── training.example.yaml        # Training configuration
+│   ├── llm_config.yaml             # LLM model settings
+│   ├── data_config.yaml            # Data paths and preprocessing
+│   └── decision_tree_config.yaml   # Decision tree settings
+│
+├── data/                           # Data at various stages
+│   ├── raw/                        # Original narrative reports
+│   ├── processed/                  # Cleaned narratives
+│   ├── json_outputs/               # LLM-generated JSON
+│   └── splits/                     # Train/val/test splits
+│
+├── models/                         # Trained models
+│   ├── checkpoints/                # LLM model weights
+│   └── decision_tree/              # Decision tree models
+│
+├── src/                           # Source code
+│   ├── data/                      # Data handling
+│   │   ├── data_loader.py         # Load MIMIC-III and other datasets
+│   │   ├── preprocessor.py        # Clean and normalize text
+│   │   └── json_schema.py         # Define JSON extraction structure
+│   │
+│   ├── clinical_summary/          # LLM component
+│   │   ├── config.py              # LLM configuration
+│   │   ├── data.py                # LLM data preparation
+│   │   ├── inference.py           # Run LLM extraction
+│   │   ├── prompts.py             # Prompt templates
+│   │   └── training.py            # LLM training
+│   │
+│   ├── triage_planner/            # Decision tree component
+│   │   └── decision_tree.py       # Decision tree logic
+│   │
+│   ├── utils/                     # Utilities
+│   │   ├── logging.py             # Logging setup
+│   │   └── metrics.py             # Evaluation metrics
+│   │
+│   └── pipeline/                  # End-to-end orchestration
+│       └── end_to_end.py          # Connect LLM + decision tree
+│
+├── scripts/                       # Executable scripts
+│   ├── train_llm.py              # Train LLM (TODO)
+│   ├── train_tree.py             # Train decision tree (TODO)
+│   └── run_inference.py          # Run inference on narratives
+│
+├── tests/                        # Unit tests
+│   └── test_pipeline.py          # Test end-to-end pipeline
+│
+├── notebooks/                    # Jupyter notebooks (optional)
+├── docs/                         # Documentation
+├── samples/                      # Sample data
+│   └── patients.sample.json     # Example JSON structure
+├── .gitignore
+├── README.md
+├── requirements.txt
+└── pyproject.toml
+🔧 Components
+1. Data Processing (src/data/)
+Data Loader (data_loader.py)
+
+Loads narrative reports from MIMIC-III dataset
+Supports text files, JSON/JSONL formats
+Creates train/validation/test splits
+
+Preprocessor (preprocessor.py)
+
+Cleans narrative text
+Removes Protected Health Information (PHI)
+Normalizes whitespace and formatting
+Filters by length
+
+JSON Schema (json_schema.py)
+
+Defines structured output format for LLM
+Patient info, vitals, symptoms, medical history
+Validation and serialization utilities
+
+2. LLM Component (src/clinical_summary/)
+Extracts structured information from narrative text:
+
+Patient demographics (age, sex, weight)
+Vital signs (BP, HR, RR, SpO2, temp)
+Symptoms and complaints
+Medical history
+Incident details
+Severity indicators
+
+3. Decision Tree Component (src/triage_planner/)
+Uses extracted JSON to predict triage priority:
+
+Takes features from JSON (vitals, symptoms, severity flags)
+Applies decision tree classification
+Returns priority level (1-5)
+
+4. Pipeline (src/pipeline/)
+Orchestrates the complete workflow:
+
+Text preprocessing
+LLM extraction
+Feature engineering
+Priority prediction
+Result formatting
+
+5. Utilities (src/utils/)
+Logging (logging.py)
+
+Setup logging for training and inference
+Track metrics and progress
+
+Metrics (metrics.py)
+
+Accuracy, precision, recall, F1 score
+Confusion matrix
+Critical error rate
+Weighted accuracy
+LLM extraction accuracy
+
+📊 Data Sources
+MIMIC-III Dataset
+
+Clinical notes from ICU admissions
+Used for training LLM and decision tree
+Access: https://physionet.org/content/mimiciii/
+
+EMS Narrative Examples
+
+Sample reports: https://www.vdh.virginia.gov/content/uploads/sites/23/2016/05/PREP-5004Examples.pdf
